@@ -1,0 +1,329 @@
+RELIEF SUPPLY DISTRIBUTION SYSTEM
+CS 110 – Fundamentals of Computer Programming
+Assignment 1
+
+GROUP MEMBERS:
+-------------
+Muhammad Nouman Khan – 589719
+Manal Mahfooz Raja – 593630
+Raheel Khan – 585476
+
+GITHUB REPOSITORY:
+-----------------
+https://github.com/MNouman69/Relief-Supply-Distribution-System.git
+
+1. PROBLEM DESCRIPTION:
+=====================
+
+The Relief Supply Distribution System simulates how a district administration
+could respond to relief requests after a disaster. For each affected area, the
+program collects information about the damage, the number of families
+affected, route access, flood warnings, medical needs, and whether aid has
+already been received.
+
+It uses these details to calculate a need score and decide whether to provide
+Full Relief, Standard Relief, an Emergency Kit, or defer the request. After
+each decision, it updates the available trucks and supply packs and displays
+the resources remaining. This helps demonstrate how a relief team can make
+consistent decisions when supplies and transport are limited.
+
+
+2. NEED SCORE CALCULATION:
+=========================
+
+The program adds points from six factors. The weights are a design choice for
+this assignment; they are intended to give higher priority to serious damage,
+large affected populations, urgent medical needs, and areas facing additional
+risks.
+
+Damage level:
+------------
+High damage:       +30
+Medium damage:     +20
+Low damage:          0
+
+Reason: Damage is an important sign of how urgently an area needs help.
+High damage receives the most points, medium damage receives fewer points,
+and low damage adds no points. This keeps the score focused on areas with
+greater reported damage.
+
+Families affected:
+-----------------
+Fewer than 90 families:    0
+90 to 150 families:       +20
+More than 150 families:   +30
+
+Reason: A larger affected population will generally need more supplies.
+Smaller family counts (<90) get 0 points because fewer people require 
+smaller baseline resources, keeping major aid focused on heavily 
+populated zones.
+
+Access route:
+------------
+Damaged route:    +10
+Open route:         0
+
+Reason: A damaged route can make delivery slower, harder, or less reliable.
+The extra points recognise the additional risk and urgency. However, a high
+score does not mean that any size of convoy can safely use a damaged road.
+The program therefore applies a separate transport restriction.
+
+Flood warning:
+-------------
+Yes:    +10
+No:       0
+
+Reason: A flood warning suggests that conditions may deteriorate and that
+waiting could make access or living conditions worse. The additional points
+encourage the program to consider this risk.
+
+Medical need:
+------------
+Yes:    +15
+No:       0
+
+Reason: Medical needs can be time-sensitive, so this factor receives a
+relatively high weight. It helps raise the priority of requests where people
+may need urgent medical assistance.
+
+Previous aid received:
+---------------------
+Yes:     -5
+No:      +5
+
+Reason: The program gives a small preference to areas that have not yet
+received aid. If an area has already received assistance, subtracting five
+points reduces the chance that it will automatically remain ahead of areas
+that have not been served. If no aid has been received, adding five points
+helps that area get considered. This is a simple fairness rule, not a claim
+that an area that received aid no longer needs help; its other needs factors
+still contribute to the total score.
+
+Total score:
+-----------
+The program adds all six factor scores. It then limits the result to the
+range 0–100:
+- A score above 100 is set to 100.
+- A score below 0 is set to 0.
+
+The upper limit keeps scores within a predictable range. The lower limit
+prevents a negative need score. With the current weights and valid inputs,
+the theoretical maximum is 100 and the minimum before the limit is applied
+is -5.
+
+
+3. DECISION AND RESOURCE RULES:
+==============================
+
+The program uses the total score to choose a response. It also checks how
+many trucks and supply packs remain before allocating any resources.
+
+Score thresholds:
+----------------
+Score above 75:       High priority
+Score 51–75:          Medium priority
+Score 25–50:          Low priority
+Score below 25:       Defer / no aid
+
+The thresholds make the system respond more strongly to higher-scoring
+requests. These are the program's chosen rules for the assignment, rather
+than universal disaster-response standards.
+
+Aid amounts:
+-----------
+Full Relief:          2 trucks and 50 supply packs
+Standard Relief:      1 truck and 30 supply packs
+Emergency Kit:        1 truck and 10 supply packs
+Defer / Monitor:      0 trucks and 0 supply packs
+
+High-priority requests:
+----------------------
+For a score above 75, the program first checks whether the route is damaged.
+If it is damaged and at least one truck and 30 packs are available, the
+program sends Standard Relief instead of Full Relief. Otherwise, it tries
+Full Relief if at least two trucks and 50 packs are available. If Full Relief
+is not possible, it tries Standard Relief, then an Emergency Kit. If none of
+these options is affordable, the request is deferred.
+
+Why limit relief on a damaged route?
+------------------------------------
+This program has trucks for transport; it does not have aircraft that could
+bypass a damaged road. Sending a two-truck convoy along a damaged route could
+put both vehicles at risk of getting stuck, being delayed, or being unable to
+reach the affected area. Limiting the response to one truck is a simple
+precaution in this simulation: it reduces the number of vehicles exposed to
+the route problem while still allowing essential supplies to be delivered.
+It does not mean that one truck is guaranteed to pass safely; real operations
+would need a route assessment before dispatch.
+
+Medium-priority requests:
+------------------------
+For scores from 51 to 75, the program tries Standard Relief first. If there
+are not enough resources for that action, it tries an Emergency Kit. If even
+the Emergency Kit cannot be provided, the request is deferred.
+
+Low-priority requests:
+---------------------
+For scores from 25 to 50, the program sends an Emergency Kit if at least one
+truck and 10 packs are available. Otherwise, it defers the request.
+
+Scores below 25:
+---------------
+The program defers these requests without allocating resources.
+
+Resource checks and fallbacks:
+-----------------------------
+Before sending aid, the program checks that enough trucks and packs are
+available. If the preferred action is not possible, it tries the smaller
+option allowed by that priority branch. Resources are deducted only after an
+action has been selected, so the program does not intentionally allocate more
+trucks or packs than it has.
+
+A fallback still counts as a successful request because the area receives
+some assistance. A deferred request increments the deferred counter and uses
+no resources.
+
+
+4. PROGRAM INPUTS AND C++ CONCEPTS:
+=================================
+
+At startup, the user chooses one of two starting resource levels:
+
+- Choice 1: 5 trucks and 120 supply packs.
+- Choice 2: 2 trucks and 70 supply packs.
+
+The second option is intended to make it easier to demonstrate what happens
+when resources become limited. The user then enters the number of requests
+to process.
+
+For each request, the program asks for:
+- Location name
+- Damage level: H, M, or L
+- Families affected: an integer from 10 to 200
+- Route condition: O for open or D for damaged
+- Flood warning: Y or N
+- Medical need: Y or N
+- Previous aid received: Y or N
+
+The program re-prompts for invalid entries for these inputs.
+
+C++ concepts used include:
+- if, else-if, and nested conditional statements
+- switch statements
+- Logical and relational operators
+- Arithmetic and assignment operators
+- A for loop to process multiple requests
+- while loops for input validation
+- Formatted output using iomanip, setw, and left
+- String input using getline and cin >> ws to ensure user 
+  can input spaces between location names.
+
+
+5. TEST RESULTS:
+===============
+
+The following results were verified by running the C++ program
+with the five sample requests provided in the assignment. 
+Both the full-resource and limited-resource scenarios were 
+tested, and the results below match the program output.
+
+Test Set 1 – Full resources (5 trucks, 120 packs):
+-------------------------------------------------
+
+Request          Score   Action taken                       Trucks  Packs
+R1 Riverside       90    Standard Relief (damaged route)       1      30
+R2 Hilltop         15    Defer / no aid                        0       0
+R3 Lakeside        80    Full Relief                           2      50
+R4 Market Town     35    Emergency Kit                         1      10
+R5 Bridge Colony   60    Standard Relief                       1      30
+
+Summary:
+Total requests:       5
+Successful requests:  4
+Deferred requests:    1
+Trucks remaining:     0
+Packs remaining:      0
+
+Explanation:
+R1 has a high score, but its damaged route triggers the one-truck Standard
+Relief cap. R2 scores below 25 and is deferred. R3 qualifies for Full Relief
+and the resources are sufficient. R4 receives an Emergency Kit. R5 receives
+Standard Relief. All five trucks and all 120 packs are used.
+
+Test Set 2 – Partial resources (2 trucks, 70 packs):
+---------------------------------------------------
+
+Request          Score   Action taken                       Trucks  Packs
+R1 Riverside       90    Standard Relief (damaged route)       1      30
+R2 Hilltop         15    Defer / no aid                        0       0
+R3 Lakeside        80    Standard Relief (fallback)            1      30
+R4 Market Town     35    Defer: insufficient trucks            0       0
+R5 Bridge Colony   60    Defer: insufficient trucks            0       0
+
+Summary:
+Total requests:       5
+Successful requests:  2
+Deferred requests:    3
+Trucks remaining:     0
+Packs remaining:     10
+
+Explanation:
+R1 receives Standard Relief because the route is damaged. R2 is deferred
+because its score is below 25. R3 has a high score, but after R1 only one
+truck and 40 packs remain, so Full Relief is not possible; Standard Relief
+is used instead. No trucks remain after R3, so R4 and R5 are deferred.
+Ten packs remain because there is no truck available to deliver them.
+
+
+6. WHY THE DESIGN MAKES SENSE:
+=============================
+
+The score combines several factors instead of relying on damage alone.
+Medical need and severe damage receive relatively high weights because they
+can indicate urgent harm. Family bands represent the size of the affected
+population. Flood warnings and damaged routes add points because they create
+additional risks. The previous-aid adjustment helps distribute attention
+across areas instead of repeatedly favouring places that have already been
+served.
+
+The damaged-route rule is separate from the score because urgency and
+transport feasibility are different questions. A place can be highly
+vulnerable but still be difficult to reach with a large convoy. Since this
+simulation only has trucks, the program limits a high-priority request on a
+damaged route to one truck and 30 packs when those resources are available.
+
+The program also uses fallback actions so that a request can receive a
+smaller amount of aid when the preferred response is not affordable. This
+helps make use of remaining resources without exceeding the available stock.
+
+
+7. GROUP CONTRIBUTIONS:
+======================
+
+Muhammad Nouman Khan (589719)
+- Designed and wrote the core C++ source code, implemented input validation loops, constructed the score calculations, and developed the resource fallback logic.
+
+Manal Mahfooz Raja (593630)
+- Created the program flowchart, verified conditional branching paths, and organized the report documentation.
+
+Raheel Khan (585476)
+- Hand-traced test cases, performed debugging runs for both full and partial resource configurations, and cross-checked output accuracy.
+
+
+8. AI USE NOTE:
+==============
+
+AI tools were used to help review the code and flowchart, check the logic
+against the assignment requirements, and improve the clarity of this
+documentation.
+
+
+9. SUBMISSION CHECKLIST (COMPLETED):
+===================================
+- All group members' names and roll numbers have been added.
+- The GitHub repository link has been included.
+- The program has been compiled, run, and tested successfully.
+- Output files for both resource settings have been saved.
+- The flowchart matches the final C++ code.
+- The C++ source code and flowchart are ready for attachment.
+- The report and all required assignment items are included.
