@@ -317,13 +317,3 @@ AI tools were used to help review the code and flowchart, check the logic
 against the assignment requirements, and improve the clarity of this
 documentation.
 
-
-9. SUBMISSION CHECKLIST (COMPLETED):
-===================================
-- All group members' names and roll numbers have been added.
-- The GitHub repository link has been included.
-- The program has been compiled, run, and tested successfully.
-- Output files for both resource settings have been saved.
-- The flowchart matches the final C++ code.
-- The C++ source code and flowchart are ready for attachment.
-- The report and all required assignment items are included.
